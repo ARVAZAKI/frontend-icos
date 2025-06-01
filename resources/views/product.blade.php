@@ -640,7 +640,53 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    
+    const deleteButtons = document.querySelectorAll('.delete-product-btn');
+deleteButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        const productId = this.getAttribute('data-product-id');
+        const productName = this.getAttribute('data-product-name');
+        
+        // Show confirmation dialog
+        if (confirm(`Apakah Anda yakin ingin menghapus produk "${productName}"?\n\nTindakan ini tidak dapat dibatalkan!`)) {
+            // Create and submit delete form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/product/${productId}`;
+            form.style.display = 'none';
+            
+            // Add CSRF token
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            if (csrfToken) {
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = '_token';
+                csrfInput.value = csrfToken.getAttribute('content');
+                form.appendChild(csrfInput);
+            }
+            
+            // Add method spoofing for DELETE
+            const methodInput = document.createElement('input');
+            methodInput.type = 'hidden';
+            methodInput.name = '_method';
+            methodInput.value = 'DELETE';
+            form.appendChild(methodInput);
+            
+            // Add branch_id to maintain current state
+            const selectedBranch = new URLSearchParams(window.location.search).get('branch_id');
+            if (selectedBranch) {
+                const branchInput = document.createElement('input');
+                branchInput.type = 'hidden';
+                branchInput.name = 'branch_id';
+                branchInput.value = selectedBranch;
+                form.appendChild(branchInput);
+            }
+            
+            // Append form to body and submit
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+});    
 
     // Add loading state to buttons during form submission
     const submitButtons = document.querySelectorAll('button[type="submit"]');

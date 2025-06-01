@@ -184,4 +184,32 @@ class ProductController extends Controller
             ], 500);
         }
     }
+
+    public function destroy($id)
+    {
+        try {
+             $response = Http::withToken($this->token)->delete($this->api . '/api/Product/'. $id);
+
+            if ($response->successful()) {
+                return back()->with('success', 'Kategori berhasil dihapus!');
+            } else {
+                $errorMessage = 'Gagal menghapus Produk';
+
+                if ($response->status() == 404) {
+                    $errorMessage = 'Produk tidak ditemukan atau sudah dihapus';
+                } elseif ($response->status() == 400) {
+                    $errorMessage = 'Produk tidak dapat dihapus karena masih memiliki relasi data';
+                } elseif ($response->status() == 500) {
+                    $errorMessage = 'Terjadi kesalahan pada server API';
+                }
+
+                return back()->with('error', $errorMessage . ' (HTTP ' . $response->status() . ')');
+            }
+
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            return back()->with('error', 'Tidak dapat terhubung ke API server. Pastikan API server berjalan.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
 }
