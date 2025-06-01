@@ -275,15 +275,21 @@
                 </a>
             </li>
             <li>
-                <a href="/dashboard">
+                <a href="/table">
+                    <i class="fas fa-table"></i>
+                    <span>Tables</span>
+                </a>
+            </li>
+            <li>
+                <a href="/order">
                     <i class="fas fa-shopping-cart"></i>
                     <span>Orders</span>
                 </a>
             </li>
             <li>
-                <a href="/dashboard">
-                    <i class="fas fa-table"></i>
-                    <span>Tables</span>
+                <a href="/table-reservation">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Table Reservation</span>
                 </a>
             </li>
            <li class="mt-3">
