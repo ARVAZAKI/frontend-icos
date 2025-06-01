@@ -4,14 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Session;
 
 class BranchController extends Controller
 {
     protected $api;
-
+    protected $token;
     public function __construct()
     {   
-        $this->api = 'http://localhost:7001';
+        $this->api = Config::get('app.apiurl');
+        $this->token = Session::get('api_token');
     }
 
 
@@ -53,7 +56,7 @@ class BranchController extends Controller
         ]);
 
         try {
-            $response = Http::post($this->api . '/api/Branch', [
+            $response = Http::withToken($this->token)->post($this->api . '/api/Branch', [
                 'branchName' => $request->branchName,
                 'address' => $request->address,
             ]);
@@ -91,7 +94,6 @@ class BranchController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // Validasi input
         $request->validate([
             'branchName' => 'required|string|max:255',
             'address' => 'required|string|max:500',
@@ -103,13 +105,11 @@ class BranchController extends Controller
         ]);
 
         try {
-            // PUT data ke API external
-            $response = Http::put($this->api . '/api/Branch/' . $id, [
+            $response = Http::withToken($this->token)->put($this->api . '/api/Branch/' . $id, [
                 'branchName' => $request->branchName,
                 'address' => $request->address,
             ]);
 
-            // Cek response dari API
             if ($response->successful()) {
                 return redirect()->route('branch.index')
                     ->with('success', 'Branch "' . $request->branchName . '" berhasil diupdate!');
@@ -147,11 +147,8 @@ class BranchController extends Controller
     public function destroy(Request $request)
 {
     try {
-        $response = Http::withHeaders([
-            'Accept' => 'application/json',
-            'Content-Type' => 'application/json',
-        ])->send('DELETE', $this->api . '/api/Branch', [
-            'json' => ['id' => (int) $request->id],
+         $response = Http::withToken($this->token)->delete($this->api . '/api/Branch', [
+            'id' => (int) $request->id
         ]);
 
         if ($response->successful()) {

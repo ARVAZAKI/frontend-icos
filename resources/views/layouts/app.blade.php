@@ -258,18 +258,18 @@
         <ul class="sidebar-nav">
             <li>
                 <a href="{{route('branch.index')}}">
-                    <i class="fas fa-list"></i>
+                    <i class="fas fa-location"></i>
                     <span>Cabang</span>
                 </a>
             </li>
             <li>
-                <a href="/categories">
-                    <i class="fas fa-list"></i>
-                    <span>Category</span>
+                <a href="/category">
+                	<i class="fas fa-bars"></i>
+                   <span>Category</span>
                 </a>
             </li>
             <li>
-                <a href="/products">
+                <a href="/product">
                     <i class="fas fa-box"></i>
                     <span>Products</span>
                 </a>
@@ -286,12 +286,15 @@
                     <span>Tables</span>
                 </a>
             </li>
-            <li class="mt-3">
-                <a href="/logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </a>
-            </li>
+           <li class="mt-3">
+    <a href="javascript:void(0)" onclick="document.getElementById('logout-form').submit();">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+    </a>
+    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+        @csrf
+    </form>
+</li>
         </ul>
     </nav>
     
