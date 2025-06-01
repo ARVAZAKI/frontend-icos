@@ -312,7 +312,80 @@
         </div>
     </div>
 </div>
-
+<div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="editProductModalLabel">Edit Produk</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="" method="POST" enctype="multipart/form-data" id="editProductForm">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="id" id="edit_product_id">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_name" class="form-label">Nama Produk <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="name" id="edit_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_price" class="form-label">Harga <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">Rp</span>
+                                    <input type="number" class="form-control" name="price" id="edit_price" min="0" step="0.01" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_stock" class="form-label">Stok <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="stock" id="edit_stock" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_categoryId" class="form-label">Kategori <span class="text-danger">*</span></label>
+                                <select name="categoryId" id="edit_categoryId" class="form-select" required>
+                                    <option value="">-- Pilih Kategori --</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category['id'] }}">
+                                            {{ $category['categoryName'] }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_description" class="form-label">Deskripsi</label>
+                        <textarea class="form-control" name="description" id="edit_description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_ImageFile" class="form-label">Gambar Produk</label>
+                        <input type="file" class="form-control" name="ImageFile" id="edit_ImageFile">
+                        <div class="form-text">Biarkan kosong jika tidak ingin mengubah gambar</div>
+                        <div id="current_image_preview" class="mt-2" style="display: none;">
+                            <label class="form-label">Gambar Saat Ini:</label>
+                            <br>
+                            <img id="current_image" src="" alt="Current Image" class="img-thumbnail" style="max-width: 150px; max-height: 150px;">
+                        </div>
+                    </div>
+                    <input type="hidden" name="branch_id" id="edit_branch_id" value="{{ $selectedBranch }}">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <!-- Modal View Product Detail -->
 <div class="modal fade" id="viewProductModal" tabindex="-1" aria-labelledby="viewProductModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -717,7 +790,69 @@ function formatCurrency(amount) {
 function formatNumber(number) {
     return new Intl.NumberFormat('id-ID').format(number);
 }
+const editButtons = document.querySelectorAll('.edit-product-btn');
+editButtons.forEach(button => {
+    button.addEventListener('click', async function() {
+        const productId = this.getAttribute('data-product-id');
+        
+        try {
+            // Fetch product data
+            const response = await fetch(`/product/${productId}`);
+            const product = await response.json();
+            
+            if (response.ok) {
+                // Populate form fields
+                document.getElementById('edit_product_id').value = product.id;
+                document.getElementById('edit_name').value = product.name;
+                document.getElementById('edit_price').value = product.price;
+                document.getElementById('edit_stock').value = product.stock;
+                document.getElementById('edit_categoryId').value = product.categoryId;
+                document.getElementById('edit_description').value = product.description || '';
+                document.getElementById('edit_branch_id').value = product.branchId;
+                
+                // Set form action dengan product ID yang benar
+                const form = document.getElementById('editProductForm');
+                form.action = `{{ url('product') }}/${product.id}`;
+                
+                // Show current image if exists
+                const currentImagePreview = document.getElementById('current_image_preview');
+                const currentImage = document.getElementById('current_image');
+                
+                if (product.imageUrl) {
+                    currentImage.src = product.imageUrl;
+                    currentImagePreview.style.display = 'block';
+                } else {
+                    currentImagePreview.style.display = 'none';
+                }
+                
+            } else {
+                alert('Gagal memuat data produk: ' + (product.error || 'Terjadi kesalahan'));
+            }
+        } catch (error) {
+            console.error('Error fetching product data:', error);
+            alert('Terjadi kesalahan saat memuat data produk');
+        }
+    });
+});
 
+// Clear edit form when modal is closed
+const editModal = document.getElementById('editProductModal');
+if (editModal) {
+    editModal.addEventListener('hidden.bs.modal', function() {
+        const form = this.querySelector('form');
+        if (form) {
+            form.reset();
+            // Remove validation classes
+            form.querySelectorAll('.is-invalid').forEach(el => {
+                el.classList.remove('is-invalid');
+            });
+            // Hide current image preview
+            document.getElementById('current_image_preview').style.display = 'none';
+            // Reset form action
+            form.action = '';
+        }
+    });
+}
 // Export functions for potential external use
 window.ProductManager = {
     refreshData: window.refreshData,

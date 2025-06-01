@@ -212,4 +212,73 @@ class ProductController extends Controller
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
+
+    public function update(Request $request, $id){
+    try {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'categoryId' => 'required|integer',
+            'branch_id' => 'required|integer',
+            'description' => 'nullable|string',
+            'ImageFile' => 'nullable|image|mimes:jpeg,png,jpg'
+        ]);
+
+        $data = [
+            'Name' => trim($request->name),
+            'Price' => (int) $request->price,
+            'Stock' => (int) $request->stock,
+            'Description' => trim($request->description),
+            'CategoryId' => (int) $request->categoryId,
+            'BranchId' => (int) $request->branch_id,
+            'IsActive' => 'true'
+        ];
+
+        if ($request->hasFile('ImageFile') && $request->file('ImageFile')->isValid()) {
+            $file = $request->file('ImageFile');
+            Log::info('Uploading new image:', [
+                'name' => $file->getClientOriginalName(),
+                'size' => $file->getSize(),
+                'mime' => $file->getMimeType()
+            ]);
+            
+            $data['ImageFile'] = fopen($file->getRealPath(), 'r');
+        } else {
+            $data['ImageFile'] = ''; 
+        }
+        
+        $response = Http::withToken($this->token)
+            ->asMultipart()
+            ->timeout(30)
+            ->put($this->api . '/api/Product/' . $id, $data);
+            
+        if (isset($data['ImageFile']) && is_resource($data['ImageFile'])) {
+            fclose($data['ImageFile']);
+        }
+
+        if ($response->successful()) {
+            return back()->with('success', 'Produk berhasil diupdate!');
+        } else {
+            $errorMessage = 'Gagal mengupdate Produk';
+
+            if ($response->status() == 400) {
+                $errorMessage = 'Data yang dikirim tidak valid';
+                Log::error('API Error 400:', ['response' => $response->body()]);
+            } elseif ($response->status() == 500) {
+                $errorMessage = 'Terjadi kesalahan pada server API';
+                Log::error('API Error 500:', ['response' => $response->body()]);
+            }
+
+            return back()->with('error', $errorMessage . ' (HTTP ' . $response->status() . ')');
+        }
+
+    } catch (\Illuminate\Http\Client\ConnectionException $e) {
+        Log::error('Connection Error:', ['message' => $e->getMessage()]);
+        return back()->with('error', 'Tidak dapat terhubung ke API server. Pastikan API server berjalan.');
+    } catch (\Exception $e) {
+        Log::error('General Error:', ['message' => $e->getMessage()]);
+        return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+    }
+}
 }
