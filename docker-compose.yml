@@ -1,26 +1,25 @@
 version: "3.8"
 
 services:
-    laravel-frontend:
+    app:
         build:
             context: .
             dockerfile: Dockerfile
-        image: laravel-frontend
         container_name: laravel-frontend
         ports:
             - "8000:8000"
         volumes:
             - .:/var/www/html
-            - /var/www/html/vendor
+            - ./storage:/var/www/html/storage
+            - ./bootstrap/cache:/var/www/html/bootstrap/cache
         environment:
             - APP_ENV=local
             - APP_DEBUG=true
+            - APP_KEY=${APP_KEY}
             - APP_URL=http://localhost:8000
-            - LOG_CHANNEL=stdout
+            - DB_CONNECTION=none
+            - SESSION_DRIVER=file
+            - CACHE_STORE=file
+            - QUEUE_CONNECTION=sync
+            - MAIL_MAILER=log
         restart: unless-stopped
-        networks:
-            - laravel-network
-
-networks:
-    laravel-network:
-        driver: bridge
