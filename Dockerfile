@@ -1,10 +1,10 @@
-# Use the official PHP image with PHP 8.2
+# Gunakan image PHP resmi dengan PHP 8.2
 FROM php:8.2-fpm
 
-# Set working directory
+# Set direktori kerja
 WORKDIR /var/www/html
 
-# Install system dependencies
+# Instal dependensi sistem
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -17,28 +17,28 @@ RUN apt-get update && apt-get install -y \
     npm \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions required by Laravel
-RUN docker-php-ext-install pdo pdo_sqlite mbstring exif pcntl bcmath gd
+# Instal ekstensi PHP yang dibutuhkan Laravel (tanpa pdo_sqlite)
+RUN docker-php-ext-install pdo mbstring exif pcntl bcmath gd
 
-# Install Composer
+# Instal Composer
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
-# Copy application files
+# Salin file aplikasi
 COPY . .
 
-# Install PHP dependencies
+# Instal dependensi PHP
 RUN composer install --optimize-autoloader --no-dev
 
-# Install Node.js dependencies
+# Instal dependensi Node.js
 RUN npm install
 
-# Set permissions
+# Set izin
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
-# Expose port 8000 for php artisan serve
+# Ekspos port 8000 untuk php artisan serve
 EXPOSE 8000
 
-# Command to run the Laravel development server
+# Perintah untuk menjalankan server pengembangan Laravel
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
