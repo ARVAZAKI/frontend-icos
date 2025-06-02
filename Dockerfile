@@ -4,7 +4,7 @@ FROM php:8.2-cli
 # Set direktori kerja
 WORKDIR /var/www/html
 
-# Instal dependensi sistem dalam satu lapisan untuk mengurangi ukuran image
+# Instal dependensi sistem dalam satu lapisan
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
@@ -29,9 +29,9 @@ COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 # Salin file Composer terlebih dahulu untuk caching
 COPY composer.json composer.lock ./
 
-# Instal dependensi PHP dengan opsi optimal
+# Instal dependensi PHP, termasuk dev dependencies
 RUN set -eux; \
-    composer install --no-dev --optimize-autoloader --no-interaction --verbose; \
+    composer install --no-interaction --verbose; \
     rm -rf ~/.composer/cache
 
 # Salin semua file aplikasi
@@ -51,7 +51,7 @@ RUN set -eux; \
 # Set izin untuk direktori Laravel
 RUN set -eux; \
     chown -R www-data:www-data /var/www/html; \
-    chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Ekspos port 8000 untuk php artisan serve
 EXPOSE 8000
