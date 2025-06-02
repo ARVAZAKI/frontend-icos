@@ -38,8 +38,8 @@ RUN if [ -f package.json ]; then npm install && npm run build; fi
 RUN chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
-# Generate application key if not exists
-RUN php artisan key:generate --no-interaction
+# Generate application key
+RUN php artisan key:generate --no-interaction --force
 
 # Expose port 8000
 EXPOSE 8000
