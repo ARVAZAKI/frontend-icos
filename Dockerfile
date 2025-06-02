@@ -17,28 +17,31 @@ RUN apt-get update && apt-get install -y \
     npm \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Instal ekstensi PHP yang dibutuhkan Laravel (tanpa pdo_sqlite)
-RUN docker-php-ext-install pdo mbstring exif pcntl bcmath gd
+# Instal ekstensi PHP yang dibutuhkan Laravel
+RUN docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd
 
 # Instal Composer
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
-# Salin file aplikasi (hanya file yang diperlukan untuk Composer dan npm)
-COPY composer.json composer.lock package.json ./
-# Pastikan .env.example ada jika diperlukan
-COPY .env.example ./
+# Salin semua file aplikasi
+COPY . .
 
-# Instal dependensi PHP dengan verbose untuk debugging
-RUN composer install --optimize-autoloader --no-dev --verbose
+# Instal dependensi PHP dengan mengabaikan post-autoload-dump scripts
+RUN composer install --optimize-autoloader --no-dev --no-scripts --verbose
+
+# Jalankan post-autoload-dump scripts setelah semua file tersedia
+RUN composer run-script post-autoload-dump
 
 # Instal dependensi Node.js
-COPY . .
 RUN npm install
 
 # Set izin
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
+
+# Buat file database SQLite jika belum ada
+RUN touch /var/www/html/database/database.sqlite
 
 # Ekspos port 8000 untuk php artisan serve
 EXPOSE 8000
