@@ -17,9 +17,9 @@ services:
             - APP_DEBUG=true
             - APP_KEY=${APP_KEY}
             - APP_URL=http://localhost:8000
-            - DB_CONNECTION=none
-            - SESSION_DRIVER=file
-            - CACHE_STORE=file
+            - DB_CONNECTION=
+            - SESSION_DRIVER=array
+            - CACHE_STORE=array
             - QUEUE_CONNECTION=sync
             - MAIL_MAILER=log
         restart: unless-stopped
