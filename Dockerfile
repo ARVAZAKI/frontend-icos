@@ -23,13 +23,16 @@ RUN docker-php-ext-install pdo mbstring exif pcntl bcmath gd
 # Instal Composer
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
-# Salin file aplikasi
-COPY . .
+# Salin file aplikasi (hanya file yang diperlukan untuk Composer dan npm)
+COPY composer.json composer.lock package.json ./
+# Pastikan .env.example ada jika diperlukan
+COPY .env.example ./
 
-# Instal dependensi PHP
-RUN composer install --optimize-autoloader --no-dev
+# Instal dependensi PHP dengan verbose untuk debugging
+RUN composer install --optimize-autoloader --no-dev --verbose
 
 # Instal dependensi Node.js
+COPY . .
 RUN npm install
 
 # Set izin
